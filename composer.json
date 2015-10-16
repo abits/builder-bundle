@@ -1,0 +1,12 @@
+{
+  "name": "fuf/builder-bundle",
+  "description": "Global tools for symfony projects.",
+  "minimum-stability": "dev",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "Christoph Martel",
+      "email": "cm@fuf.de"
+    }
+  ]
+}
