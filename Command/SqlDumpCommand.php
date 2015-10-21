@@ -8,6 +8,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
+use Symfony\Component\Process\ProcessBuilder;
 
 class SqlDumpCommand extends ContainerAwareCommand
 {
@@ -44,66 +45,101 @@ class SqlDumpCommand extends ContainerAwareCommand
         self::$MYSQLDUMPCMD   = exec('which mysqldump');
         self::$COMPRESSCMD    = exec('which gzip');
         $dumpDate             = date('Ymd_Hms');
-        $defaultOptions       = ' --dump-date'.
-                                ' --comments'.
-                                ' --add-drop-table'.
-                                ' --add-locks'.
-                                ' --create-options';
+        $defaultOptions       = array('--dump-date', 
+                                      '--comments',
+                                      '--add-drop-table',
+                                      '--add-locks',
+                                      '--create-options',
+                                      '--quick');
 
-        $databaseHost         = escapeshellarg($this->getContainer()->getParameter('database_host'));
-        $databasePort         = escapeshellarg($this->getContainer()->getParameter('database_port'));
-        $databaseName         = escapeshellarg($this->getContainer()->getParameter('database_name'));
-        $databaseUser         = escapeshellarg($this->getContainer()->getParameter('database_user'));
-        $databasePassword     = escapeshellarg($this->getContainer()->getParameter('database_password'));
+        $databaseHost         = $this->getContainer()->getParameter('database_host');
+        $databasePort         = $this->getContainer()->getParameter('database_port');
+        $this->databaseName   = $this->getContainer()->getParameter('database_name');
+        $databaseUser         = $this->getContainer()->getParameter('database_user');
+        $databasePassword     = $this->getContainer()->getParameter('database_password');
 
-        if (!$databaseName) {
+        if (!$this->databaseName) {
             throw new InvalidArgumentException('Cannot find database name in your parameters.yml.');
         }
 
-        $databaseHostParameter      = $databaseHost     ? sprintf(' --host=%s', $databaseHost) : '';
-        $databasePortParameter      = $databasePort     ? sprintf(' --port=%s', $databasePort) : '';
-        $databaseUserParameter      = $databaseUser     ? sprintf(' --user=%s', $databaseUser) : '';
-        $databasePasswordParameter  = $databasePassword ? sprintf(' --password=%s', $databasePassword) : '';
+        $databaseHostParameter      = $databaseHost     ? sprintf('--host=%s', $databaseHost) : false;
+        $databasePortParameter      = $databasePort     ? sprintf('--port=%s', $databasePort) : false;
+        $databaseUserParameter      = $databaseUser     ? sprintf('--user=%s', $databaseUser) : false;
+        $databasePasswordParameter  = $databasePassword ? sprintf('--password=%s', $databasePassword) : false;
 
-        $this->debugOptions         = ' --debug-check'.
-                                      ' --debug-info';
         $this->resultFileName       = sprintf('%s_%s.sql', 
             $this->getContainer()->getParameter('database_name'), $dumpDate);
-        $this->databaseNameArgument = sprintf(' %s', $databaseName);
-        $this->cmd                  = sprintf('%s%s%s%s%s%s', 
-                                                self::$MYSQLDUMPCMD,
-                                                $databaseHostParameter,
-                                                $databasePortParameter,
-                                                $databaseUserParameter,
-                                                $databasePasswordParameter,
-                                                $defaultOptions);
+        $resultFileParameter        = sprintf('--result-file=%s', $this->resultFileName);
+        $this->debugOptions         = array('--debug-check', '--debug-info', '--verbose');
+
+        if ($databaseHostParameter) {
+            $cmdOptions[] = $databaseHostParameter;
+        }
+        if ($databasePortParameter) {
+            $cmdOptions[] = $databasePortParameter;
+        }
+        if ($databaseUserParameter) {
+            $cmdOptions[] = $databaseUserParameter;
+        }
+        if ($databasePasswordParameter) {
+            $cmdOptions[] = $databasePasswordParameter;
+        }
+        $cmdOptions[] = $resultFileParameter;
+
+
+        array($databaseHostParameter, 
+              $databasePortParameter,
+              $databaseUserParameter, 
+              $databasePasswordParameter,
+              $resultFileParameter);
+
+        $this->options = array_merge($cmdOptions, $defaultOptions);
+
+        $this->dumpCmd = new ProcessBuilder();
+        $this->dumpCmd->setPrefix(self::$MYSQLDUMPCMD);
+        $this->dumpCmd->setArguments($this->options);
+
+        $this->zipCmd = new ProcessBuilder();
+        $this->zipCmd->setPrefix(self::$COMPRESSCMD);
     }
 
     protected function interact(InputInterface $input, OutputInterface $output) {
-        $append_cmd = '';
-        if ($input->getOption('skip')) {
-
+        if ($skippedTablesString = $input->getOption('skip')) {
+            $skippedTables = explode(',', $skippedTablesString);
+            foreach ($skippedTables as $key => $table) {
+                $skippedOptions[] = sprintf('--ignore-table=%s.%s', 
+                    $this->databaseName, $table);
+            }
+            $this->options = array_merge($this->options, $skippedOptions);
         }
         if ($input->getOption('debug')) {
-            $append_cmd .= $this->debugOptions;
+            $this->options = array_merge($this->options, $this->debugOptions);
         }
-        $this->cmd .= $append_cmd;
 
-        if ($input->getOption('compress')) {
-            $resultFileName = sprintf('%s.gz', $this->resultFileName);
-            $append_cmd    .= sprintf(' %s | %s > %s', $this->databaseNameArgument,
-                                                       self::$COMPRESSCMD,
-                                                       escapeshellarg($this->resultFileName));
-        } else {
-            $append_cmd    .= sprintf(' %s > %s', $this->databaseNameArgument,
-                                                  escapeshellarg($this->resultFileName));
-        }
-        $this->cmd .= $append_cmd;
+        $this->dumpCmd->setArguments($this->options);
+        $this->dumpCmd->add($this->databaseName);
+
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        shell_exec($this->cmd);
+        $process = $this->dumpCmd->getProcess();
+        $process->mustRun();
+
+        $process->run(function ($type, $buffer) {
+            if (Process::ERR === $type) {
+                echo 'ERR > '.$buffer;
+            } else {
+                echo 'OUT > '.$buffer;
+            }
+        });
+
+        if ($input->getOption('compress')) {
+            $this->zipCmd->setArguments(array($this->resultFileName));
+            $this->zipCmd->getProcess()->mustRun();
+            $this->resultFileName = sprintf('%s.gz', $this->resultFileName);
+        }
+
         $msg = sprintf('Dumped database to %s. ', $this->resultFileName);
         $output->write($msg);
 
