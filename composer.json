@@ -8,5 +8,8 @@
       "name": "Christoph Martel",
       "email": "cm@fuf.de"
     }
-  ]
+  ],
+  "require": {
+        "symfony/process": "2.7.*"
+  }
 }
