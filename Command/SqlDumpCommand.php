@@ -48,7 +48,7 @@ class SqlDumpCommand extends ContainerAwareCommand
             $databaseNameArgument  = sprintf(' %s', $databaseName);
         }
         else {
-            throw new InvalidArgumentException('You must specify a database name in your parameters.yml.');
+            throw new InvalidArgumentException('Cannot find database name in your parameters.yml.');
         }
 
         $cmd = sprintf('%s%s%s%s%s%s', self::$MYSQLDUMPCMD,
