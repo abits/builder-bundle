@@ -1,7 +1,8 @@
 <?php
 /**
  * Tools to handle automatic dumps from sql databases in Symfony 2 projects.
- * 2015 Frank und Freunde GmbH
+ * [2015] Frank und Freunde GmbH
+ * Christoph Martel <cm@fuf.de>
  */
 
 namespace BuilderBundle\Command;
