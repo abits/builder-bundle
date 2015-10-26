@@ -1,4 +1,9 @@
 <?php
+/**
+ * Tools to handle automatic dumps from sql databases in Symfony 2 projects.
+ * 2015 Frank und Freunde GmbH
+ */
+
 namespace BuilderBundle\Command;
 
 use Doctrine\Common\Proxy\Exception\InvalidArgumentException;
@@ -10,11 +15,26 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\ProcessBuilder;
 
+/**
+ * Define sql dump command für symfony console.
+ */
 class SqlDumpCommand extends ContainerAwareCommand
 {
+    /**
+     * Path to mysqldump executable
+     * @var string
+     */
     protected static $MYSQLDUMPCMD;
+
+    /**
+     * Path to gzip executable.
+     * @var string
+     */
     protected static $COMPRESSCMD;
 
+    /**
+     * Set up basic behavior of command.
+     */
     protected function configure()
     {
         $this
@@ -41,16 +61,23 @@ class SqlDumpCommand extends ContainerAwareCommand
             ;
     }
 
-    protected function initialize(InputInterface $input, OutputInterface $output) {
+    /**
+     * Set basic values for command from parameters.yml.
+     * @param  InputInterface  $input  user input container
+     * @param  OutputInterface $output output handler
+     */
+    protected function initialize(InputInterface $input, OutputInterface $output)
+    {
         self::$MYSQLDUMPCMD   = exec('which mysqldump');
         self::$COMPRESSCMD    = exec('which gzip');
         $dumpDate             = date('Ymd_Hms');
-        $defaultOptions       = array('--dump-date', 
+        $defaultOptions       = array('--dump-date',
                                       '--comments',
                                       '--add-drop-table',
                                       '--add-locks',
                                       '--create-options',
-                                      '--quick');
+                                      '--quick',
+                                      );
 
         $databaseHost         = $this->getContainer()->getParameter('database_host');
         $databasePort         = $this->getContainer()->getParameter('database_port');
@@ -67,8 +94,11 @@ class SqlDumpCommand extends ContainerAwareCommand
         $databaseUserParameter      = $databaseUser     ? sprintf('--user=%s', $databaseUser) : false;
         $databasePasswordParameter  = $databasePassword ? sprintf('--password=%s', $databasePassword) : false;
 
-        $this->resultFileName       = sprintf('%s_%s.sql', 
-            $this->getContainer()->getParameter('database_name'), $dumpDate);
+        $this->resultFileName       = sprintf(
+            '%s_%s.sql',
+            $this->getContainer()->getParameter('database_name'),
+            $dumpDate
+        );
         $resultFileParameter        = sprintf('--result-file=%s', $this->resultFileName);
         $this->debugOptions         = array('--debug-check', '--debug-info', '--verbose');
 
@@ -87,11 +117,12 @@ class SqlDumpCommand extends ContainerAwareCommand
         $cmdOptions[] = $resultFileParameter;
 
 
-        array($databaseHostParameter, 
+        array($databaseHostParameter,
               $databasePortParameter,
-              $databaseUserParameter, 
+              $databaseUserParameter,
               $databasePasswordParameter,
-              $resultFileParameter);
+              $resultFileParameter,
+              );
 
         $this->options = array_merge($cmdOptions, $defaultOptions);
 
@@ -103,12 +134,21 @@ class SqlDumpCommand extends ContainerAwareCommand
         $this->zipCmd->setPrefix(self::$COMPRESSCMD);
     }
 
-    protected function interact(InputInterface $input, OutputInterface $output) {
+    /**
+     * Override base settings if necessary.
+     * @param  InputInterface  $input  user input container
+     * @param  OutputInterface $output output handler
+     */
+    protected function interact(InputInterface $input, OutputInterface $output)
+    {
         if ($skippedTablesString = $input->getOption('skip')) {
             $skippedTables = explode(',', $skippedTablesString);
             foreach ($skippedTables as $key => $table) {
-                $skippedOptions[] = sprintf('--ignore-table=%s.%s', 
-                    $this->databaseName, $table);
+                $skippedOptions[] = sprintf(
+                    '--ignore-table=%s.%s',
+                    $this->databaseName,
+                    $table,
+                );
             }
             $this->options = array_merge($this->options, $skippedOptions);
         }
@@ -121,6 +161,11 @@ class SqlDumpCommand extends ContainerAwareCommand
 
     }
 
+    /**
+     * Execute command and tell about it.
+     * @param  InputInterface  $input  user input container
+     * @param  OutputInterface $output output handler
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $process = $this->dumpCmd->getProcess();
@@ -148,5 +193,4 @@ class SqlDumpCommand extends ContainerAwareCommand
         $msg   = sprintf('Resulting file size: %.6s MB.', $size);
         $output->writeln($msg);
     }
-
 }
