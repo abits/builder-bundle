@@ -5,7 +5,7 @@
  * Christoph Martel <cm@fuf.de>
  */
 
-namespace BuilderBundle\Command;
+namespace Fuf\BuilderBundle\Command;
 
 use Doctrine\Common\Proxy\Exception\InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
