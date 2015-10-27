@@ -1,7 +1,7 @@
 {
   "name": "fuf/builder-bundle",
   "description": "Global tools for symfony projects.",
-  "minimum-stability": "dev",
+  "minimum-stability": "stable",
   "license": "proprietary",
   "authors": [
     {
