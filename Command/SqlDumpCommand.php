@@ -39,7 +39,7 @@ class SqlDumpCommand extends ContainerAwareCommand
     protected function configure()
     {
         $this
-            ->setName('fufx:sql-dump')
+            ->setName('fuf:sql-dump')
             ->setDescription('Dump current database to sql.')
             ->addOption(
                 'compress',

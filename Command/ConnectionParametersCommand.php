@@ -27,7 +27,7 @@ class ConnectionParametersCommand extends ContainerAwareCommand
     protected function configure()
     {
         $this
-            ->setName('fufx:db-conn')
+            ->setName('fuf:db-conn')
             ->setDescription('Dump database connection parameters for script consumers.')
             ;
     }
