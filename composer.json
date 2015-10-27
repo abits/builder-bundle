@@ -2,7 +2,6 @@
   "name": "fuf/builder-bundle",
   "description": "Global tools for symfony projects.",
   "license": "proprietary",
-  "version": "0.1.0",
   "authors": [
     {
       "name": "Christoph Martel",
@@ -13,6 +12,6 @@
         "symfony/process": "2.7.*"
   },
   "autoload": {
-    "psr-4": { "Fuf\\BuilderBundle\\": "" }
+      "psr-4": { "Fuf\\BuilderBundle\\": "" }
   }
 }

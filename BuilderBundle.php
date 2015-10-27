@@ -7,5 +7,3 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 class FufBuilderBundle extends Bundle
 {
 }
-
-
