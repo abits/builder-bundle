@@ -3,6 +3,7 @@
   "description": "Global tools for symfony projects.",
   "minimum-stability": "stable",
   "license": "proprietary",
+  "version": "0.1.0",
   "authors": [
     {
       "name": "Christoph Martel",
