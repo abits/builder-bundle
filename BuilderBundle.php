@@ -4,7 +4,7 @@ namespace Fuf\BuilderBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
-class BuilderBundle extends Bundle
+class FufBuilderBundle extends Bundle
 {
 }
 
