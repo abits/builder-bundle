@@ -148,7 +148,7 @@ class SqlDumpCommand extends ContainerAwareCommand
                 $skippedOptions[] = sprintf(
                     '--ignore-table=%s.%s',
                     $this->databaseName,
-                    $table,
+                    $table
                 );
             }
             $this->options = array_merge($this->options, $skippedOptions);
