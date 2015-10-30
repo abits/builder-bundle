@@ -12,6 +12,6 @@
         "symfony/process": "2.7.*"
   },
   "autoload": {
-      "psr-4": { "Fuf\\BuilderBundle\\": "" }
+      "psr-4": { "Fuf\\BuilderBundle\\": "src" }
   }
 }
