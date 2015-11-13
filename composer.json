@@ -2,7 +2,7 @@
     "name": "fuf/builder-bundle",
     "description": "Tools for symfony projects",
     "license": "MIT",
-    "version": "0.2.0",
+    "version": "0.2.2",
     "type": "symfony-bundle",
     "require": {
         "symfony/process": "2.7.*"
