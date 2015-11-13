@@ -3,7 +3,7 @@
 ## Tools for Symfony Projects
 
 This package is supposed to collect several tools for interfacing a Symfony
-application. It provides "missing" task for automation and deployments.  The
+application. It provides "missing" tasks for automation and deployments.  The
 package relies heavily on the symfony/console and symfony/process components.
 
 ## Installation
