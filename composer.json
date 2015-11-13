@@ -8,7 +8,7 @@
             "email": "cm@fuf.de"
         }
     ],
-    "version": "0.2.2",
+    "version": "0.2.3",
     "require": {
         "symfony/process": "2.7.*"
     },
